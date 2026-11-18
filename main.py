@@ -1,15 +1,31 @@
 import os
 import time
 import json
+import threading
 import websocket
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOKEN = os.getenv("DERIV_TOKEN")
 APP_ID = 1089
+PORT = int(os.getenv("PORT", 10000))
 
-print("Jarvis demarre...")
+# Petit serveur pour Render - pour garder le Web Service en vie
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Jarvis en ligne")
+    def log_message(self, *args):
+        pass
+
+def run_server():
+    HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+
+threading.Thread(target=run_server, daemon=True).start()
+print(f"Jarvis demarre... serveur sur port {PORT}")
 
 if not TOKEN:
-    print("ERREUR: DERIV_TOKEN manquant sur Render")
+    print("ERREUR: DERIV_TOKEN manquant")
     while True:
         time.sleep(10)
 else:
