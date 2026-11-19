@@ -22,6 +22,7 @@ def run_server():
     HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
 
 threading.Thread(target=run_server, daemon=True).start()
+
 print(f"Jarvis demarre... serveur sur port {PORT}")
 
 if not TOKEN:
@@ -41,7 +42,7 @@ else:
             print("Balance:", data["balance"])
 
     def on_error(ws, error):
-        print("Erreur:", error)
+        print("Erreur", error)
 
     def on_close(ws, code, msg):
         print("Connexion fermee, reconnexion dans 5s...")
@@ -53,8 +54,9 @@ else:
         ws.send(json.dumps({"authorize": TOKEN}))
 
     def start():
-        url = f"wss://ws.binaryws.com/websockets/v3?app_id={APP_ID}"
+        url = f"wss://ws.derivws.com/websockets/v3?app_id={APP_ID}"
         ws = websocket.WebSocketApp(url,
+            header={"Origin": "https://app.deriv.com", "User-Agent": "Mozilla/5.0"},
             on_open=on_open,
             on_message=on_message,
             on_error=on_error,
