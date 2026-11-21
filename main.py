@@ -55,12 +55,13 @@ else:
 
     def start():
         url = f"wss://ws.derivws.com/websockets/v3?app_id={APP_ID}"
-        ws = websocket.WebSocketApp(url,
-            header={"Origin": "https://app.deriv.com", "User-Agent": "Mozilla/5.0"},
+        ws = websocket.WebSocketApp(
+            url,
             on_open=on_open,
             on_message=on_message,
             on_error=on_error,
-            on_close=on_close)
+            on_close=on_close
+        )
         ws.run_forever()
 
     start()
