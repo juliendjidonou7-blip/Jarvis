@@ -6,7 +6,7 @@ import websocket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOKEN = os.getenv("DERIV_TOKEN")
-APP_ID = "351A317fd2tFf6a3SLIGH"
+APP_ID = 1089
 PORT = int(os.getenv("PORT", 10000))
 
 # Petit serveur pour Render - pour garder le Web Service en vie
@@ -54,7 +54,7 @@ else:
         ws.send(json.dumps({"authorize": TOKEN}))
 
     def start():
-        url = f"wss://ws.binaryws.com/websockets/v3?app_id={APP_ID}"
+        url = f"wss://ws.derivws.com/websockets/v3?app_id={APP_ID}"
         ws = websocket.WebSocketApp(
             url,
             on_open=on_open,
