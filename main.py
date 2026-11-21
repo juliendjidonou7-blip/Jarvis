@@ -6,7 +6,7 @@ import websocket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOKEN = os.getenv("DERIV_TOKEN")
-APP_ID = 1089
+APP_ID = "351A317fd2tFf6a3SLIGH"
 PORT = int(os.getenv("PORT", 10000))
 
 # Petit serveur pour Render - pour garder le Web Service en vie
