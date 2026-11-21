@@ -38,13 +38,7 @@ async def main():
 
     while True:
         try:
-            async with websockets.connect(
-                url,
-                extra_headers={
-                    "Origin": "https://app.deriv.com",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                }
-            ) as ws:
+            async with websockets.connect(url) as ws:
                 print("Websocket ouvert, envoi du token...")
                 await ws.send(json.dumps({"authorize": TOKEN}))
 
