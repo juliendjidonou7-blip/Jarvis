@@ -54,7 +54,7 @@ else:
         ws.send(json.dumps({"authorize": TOKEN}))
 
     def start():
-        url = f"wss://ws.derivws.com/websockets/v3?app_id={APP_ID}"
+        url = f"wss://ws.binaryws.com/websockets/v3?app_id={APP_ID}"
         ws = websocket.WebSocketApp(
             url,
             on_open=on_open,
