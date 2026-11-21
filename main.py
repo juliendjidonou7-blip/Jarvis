@@ -45,8 +45,8 @@ else:
         print("Erreur", error)
 
     def on_close(ws, code, msg):
-        print("Connexion fermee, reconnexion dans 5s...")
-        time.sleep(5)
+        print("Connexion fermee, reconnexion dans 10s...")
+        time.sleep(10)
         start()
 
     def on_open(ws):
@@ -57,6 +57,10 @@ else:
         url = f"wss://ws.derivws.com/websockets/v3?app_id={APP_ID}"
         ws = websocket.WebSocketApp(
             url,
+            header={
+                "Origin": "https://app.deriv.com",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            },
             on_open=on_open,
             on_message=on_message,
             on_error=on_error,
