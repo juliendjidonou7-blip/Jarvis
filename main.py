@@ -1,29 +1,10 @@
-import os
 import json
-import socket
 import asyncio
 import threading
 import websockets
-from http.server import BaseHTTPRequestHandler, HTTPServer
 
 TOKEN = "pat_8266112edbea6a1f136fc85482899b2422f63537de0933fdbb8e19a7b7a5e9d7"
 APP_ID = 1089
-
-class HTTPServerV6(HTTPServer):
-    address_family = socket.AF_INET6
-
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Jarvis actif")
-    def log_message(self, *args):
-        pass
-
-def run_web():
-    ip = os.environ.get("IP", "::")
-    port = int(os.environ.get("PORT", 8100))
-    HTTPServerV6((ip, port), Handler).serve_forever()
 
 async def keep_alive(ws):
     while True:
@@ -56,6 +37,11 @@ async def bot():
             print("Erreur:", e)
         await asyncio.sleep(10)
 
-if __name__ == "__main__":
-    threading.Thread(target=run_web, daemon=True).start()
+def start_bot():
     asyncio.run(bot())
+
+threading.Thread(target=start_bot, daemon=True).start()
+
+def application(environ, start_response):
+    start_response("200 OK", [("Content-Type", "text/plain; charset=utf-8")])
+    return [b"Jarvis actif"]
