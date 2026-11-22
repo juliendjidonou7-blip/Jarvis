@@ -1,9 +1,3 @@
-"""HIMRA CHETE — Moteur SMC v3.50 (Production Multi-Actifs : XAUUSD Day ; GBPUSD & BTCUSD Swing).
-
-- frxXAUUSD (Or)     : DAY uniquement (H4 / M15 / M5) — Swing strictement interdit
-- frxGBPUSD (GBPUSD) : SWING (W1 / H4 / M15) ou DAY
-- cryBTCUSD (BTCUSD) : SWING (W1 / H4 / M15) ou DAY — Ouvert 24h/24
-"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -12,12 +6,12 @@ from typing import Sequence, Optional, Dict, Tuple
 SYMBOL_SPECS: Dict[str, dict] = {
     "frxXAUUSD": {
         "name": "XAUUSD",
-        "allowed_modes": ("DAY",),           # Swing strictement interdit sur l'Or
+        "allowed_modes": ("DAY",),
         "default_mode": "DAY",
         "DAY":   {"min_zone_mid": 3.0,    "min_zone_low": 1.0,    "sl_buffer": 0.50},
-        "use_sessions": True,                # Londres & New York uniquement
+        "use_sessions": True,
         "decimals": 2,
-        "multiplier": 100,                   # Multiplicateur Deriv par défaut pour XAUUSD
+        "multiplier": 100,
     },
     "frxGBPUSD": {
         "name": "GBPUSD",
@@ -25,9 +19,9 @@ SYMBOL_SPECS: Dict[str, dict] = {
         "default_mode": "SWING",
         "SWING": {"min_zone_mid": 0.0025, "min_zone_low": 0.0008, "sl_buffer": 0.0005},
         "DAY":   {"min_zone_mid": 0.0012, "min_zone_low": 0.0004, "sl_buffer": 0.0003},
-        "use_sessions": True,                # Londres & New York uniquement
+        "use_sessions": True,
         "decimals": 5,
-        "multiplier": 100,                   # Multiplicateur Deriv par défaut pour GBPUSD
+        "multiplier": 100,
     },
     "cryBTCUSD": {
         "name": "BTCUSD",
@@ -35,9 +29,9 @@ SYMBOL_SPECS: Dict[str, dict] = {
         "default_mode": "SWING",
         "SWING": {"min_zone_mid": 350.0,  "min_zone_low": 100.0,  "sl_buffer": 60.0},
         "DAY":   {"min_zone_mid": 150.0,  "min_zone_low": 50.0,   "sl_buffer": 30.0},
-        "use_sessions": False,               # Crypto ouverte 24h/24 et 7j/7
+        "use_sessions": False,
         "decimals": 2,
-        "multiplier": 10,                    # Multiplicateur Deriv par défaut pour BTCUSD
+        "multiplier": 10,
     },
 }
 
@@ -56,12 +50,11 @@ class Config:
     sweep_lookback_bars: int = 20
     entry_timeout_low_bars: int = 10
     use_liquidity_tp: bool = True
-    risk_reward_ratio: float = 3.0    # Ratio Gain/Risque minimum 1:3
-    risk_percent: float = 1.0         # 1 % du capital par position
-    max_daily_loss: float = 50.0      # Perte max journalière ($)
-    max_trades_per_day: int = 2       # Max 2 trades/jour par actif
-    max_losses_per_day: int = 3       # Max 3 pertes/jour par actif
-    # Killzones UTC (Cotonou = GMT+1 -> 10h00-12h00 et 16h00-18h00)
+    risk_reward_ratio: float = 3.0
+    risk_percent: float = 1.0
+    max_daily_loss: float = 50.0
+    max_trades_per_day: int = 2
+    max_losses_per_day: int = 3
     session1_start_utc: int = 9
     session1_end_utc: int = 11
     session2_start_utc: int = 15
@@ -115,8 +108,8 @@ class Zone:
 
 @dataclass
 class Setup:
-    state: int = 0             # 0: attente, 1: zone HTF/Mid, 2: sweep LTF, 3: CHoCH LTF
-    direction: int = 0         # +1 BUY, -1 SELL
+    state: int = 0
+    direction: int = 0
     mid_zone: Zone = field(default_factory=Zone)
     zone_touched: bool = False
     mid_bars_elapsed: int = 0
@@ -139,9 +132,9 @@ class Setup:
 
 def is_in_trading_session(symbol: str, cfg: Config, utc_now: Optional[datetime] = None) -> bool:
     if not SYMBOL_SPECS[symbol]["use_sessions"]:
-        return True  # BTCUSD trade 24h/24
+        return True
     now = utc_now or datetime.now(timezone.utc)
-    if now.weekday() >= 5:  # Marchés fermés le week-end
+    if now.weekday() >= 5:
         return False
     h = now.hour
     return (cfg.session1_start_utc <= h < cfg.session1_end_utc) or (
@@ -179,10 +172,10 @@ def structure_bias(b: Bars, lookback: int) -> int:
     sh, sl = find_swings(b, lookback)
     if len(sh) < 2 or len(sl) < 2:
         return 0
-    hh = sh[-1] > sh[-2]
-    lh = sh[-1] < sh[-2]
-    hl = sl[-1] > sl[-2]
-    ll = sl[-1] < sl[-2]
+    hh = sh[-1][1] > sh[-2][1]
+    lh = sh[-1][1] < sh[-2][1]
+    hl = sl[-1][1] > sl[-2][1]
+    ll = sl[-1][1] < sl[-2][1]
     if hh and hl:
         return 1
     if lh and ll:
@@ -266,3 +259,35 @@ def liquidity_target(b: Bars, direction: int, entry: float, lookback: int) -> Op
     return min(candidates) if direction == 1 else max(candidates)
 
 
+class SMCSignalEngine:
+    def __init__(self, config: Config = Config()):
+        self.cfg = config
+        self.setup = Setup()
+        self.trades_today = 0
+        self.losses_today = 0
+        self.daily_pnl = 0.0
+        self.current_day = datetime.now(timezone.utc).date()
+        self.last_mid_time = None
+        self.last_low_time = None
+
+    def _refresh_day(self):
+        today = datetime.now(timezone.utc).date()
+        if today != self.current_day:
+            self.current_day = today
+            self.trades_today = 0
+            self.losses_today = 0
+            self.daily_pnl = 0.0
+
+    def can_trade(self) -> bool:
+        self._refresh_day()
+        c = self.cfg
+        if self.trades_today >= c.max_trades_per_day:
+            return False
+        if self.losses_today >= c.max_losses_per_day:
+            return False
+        if self.daily_pnl <= -abs(c.max_daily_loss):
+            return False
+        return is_in_trading_session(c.symbol, c)
+
+    def update_trend_zone(self, high_tf_bars: Bars, mid_tf_bars: Bars):
+        c = self.cfg
