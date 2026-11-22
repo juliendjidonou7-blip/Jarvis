@@ -34,11 +34,11 @@ STATUS = {
     "derniers_ordres": [],
 }
 
-ENDPOINTS = [
-    "wss://://derivws.com" + str(APP_ID),
-    "wss://://derivws.com" + str(APP_ID),
-    "wss://://derivws.com" + str(APP_ID),
-]
+HOSTS = ["ws", "green", "blue"]
+ORIGIN_URL = "".join(["https", "://", "app.", "deriv.", "com"])
+
+def make_ws_url(host: str) -> str:
+    return "".join(["wss", "://", host, ".derivws.", "com/websockets/v3?app_id=", str(APP_ID)])
 
 async def rpc(ws, payload: dict) -> dict:
     await ws.send_str(json.dumps(payload))
@@ -96,11 +96,12 @@ async def execute_multiplier_order(ws, signal: dict, balance: float):
 async def bot():
     idx = 0
     while True:
-        url = ENDPOINTS[idx % len(ENDPOINTS)]
+        host = HOSTS[idx % len(HOSTS)]
         idx += 1
+        url = make_ws_url(host)
         try:
             async with AsyncSession(impersonate="chrome124") as session:
-                ws = await session.ws_connect(url, headers={"Origin": "https://deriv.com"})
+                ws = await session.ws_connect(url, headers={"Origin": ORIGIN_URL})
                 auth = await rpc(ws, {"authorize": TOKEN})
                 if "error" in auth:
                     STATUS["connexion"] = "Erreur Auth : " + auth["error"]["message"]
@@ -110,7 +111,7 @@ async def bot():
                 info = auth["authorize"]
                 is_virtual = bool(info.get("is_virtual", 0))
                 balance = float(info.get("balance", 0.0))
-                STATUS["connexion"] = "Connecte a Deriv OK"
+                STATUS["connexion"] = f"Connecte a Deriv OK ({host})"
                 STATUS["compte"] = f"{info.get('loginid', '')} ({'DEMO VRTC' if is_virtual else 'REEL'})"
                 STATUS["solde"] = f"{balance:.2f} {info.get('currency', 'USD')}"
 
@@ -151,7 +152,7 @@ async def bot():
 
                     await asyncio.sleep(60)
         except Exception as e:
-            STATUS["connexion"] = f"Reconnexion ({url.split('/')[2]})... ({e})"
+            STATUS["connexion"] = f"Reconnexion ({host})... ({e})"
             await asyncio.sleep(5)
 
 def start_bot():
