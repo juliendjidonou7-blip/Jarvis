@@ -7,7 +7,7 @@ import json
 import asyncio
 import threading
 from datetime import datetime, timezone
-import websockets
+from curl_cffi.requests import AsyncSession
 from smc_engine import Config, Bars, SMCSignalEngine
 
 TOKEN = os.environ.get("DERIV_TOKEN", "")
@@ -34,10 +34,16 @@ STATUS = {
     "derniers_ordres": [],
 }
 
+ENDPOINTS = [
+    "wss://://derivws.com" + str(APP_ID),
+    "wss://://derivws.com" + str(APP_ID),
+    "wss://://derivws.com" + str(APP_ID),
+]
+
 async def rpc(ws, payload: dict) -> dict:
-    await ws.send(json.dumps(payload))
+    await ws.send_str(json.dumps(payload))
     while True:
-        raw = await ws.recv()
+        raw = await ws.recv_str()
         data = json.loads(raw)
         if data.get("msg_type") == "ping":
             continue
@@ -88,14 +94,13 @@ async def execute_multiplier_order(ws, signal: dict, balance: float):
     STATUS["derniers_ordres"] = STATUS["derniers_ordres"][:15]
 
 async def bot():
-    url = "wss://" + "ws." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
-    headers = {
-        "Origin": "https://app.deriv.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-    }
+    idx = 0
     while True:
+        url = ENDPOINTS[idx % len(ENDPOINTS)]
+        idx += 1
         try:
-            async with websockets.connect(url, user_agent_header=None, additional_headers=headers) as ws:
+            async with AsyncSession(impersonate="chrome124") as session:
+                ws = await session.ws_connect(url, headers={"Origin": "https://deriv.com"})
                 auth = await rpc(ws, {"authorize": TOKEN})
                 if "error" in auth:
                     STATUS["connexion"] = "Erreur Auth : " + auth["error"]["message"]
@@ -146,8 +151,8 @@ async def bot():
 
                     await asyncio.sleep(60)
         except Exception as e:
-            STATUS["connexion"] = f"Reconnexion... ({e})"
-            await asyncio.sleep(10)
+            STATUS["connexion"] = f"Reconnexion ({url.split('/')[2]})... ({e})"
+            await asyncio.sleep(5)
 
 def start_bot():
     asyncio.run(bot())
