@@ -1,3 +1,7 @@
+import sys
+import site
+sys.path.append(site.getusersitepackages())
+
 import json
 import asyncio
 import threading
