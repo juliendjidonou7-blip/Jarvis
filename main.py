@@ -7,7 +7,7 @@ import asyncio
 import threading
 import websockets
 
-TOKEN = "pat_8266112edbea6a1f136fc85482899b2422f63537de0933fdbb8e19a7b7a5e9d7"
+TOKEN = "pat_pat_027aeaebb0b8f66b38b2820b8558cdf3a72cd7b57de7aa8c85bf7f9a209e2e4b"
 APP_ID = 1089
 
 async def keep_alive(ws):
