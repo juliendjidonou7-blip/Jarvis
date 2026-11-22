@@ -90,7 +90,7 @@ async def execute_multiplier_order(ws, signal: dict, balance: float):
 async def bot():
     url = "wss://" + "ws." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
     headers = {
-        "Origin": "https://deriv.com",
+        "Origin": "https://app.deriv.com",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
     }
     while True:
