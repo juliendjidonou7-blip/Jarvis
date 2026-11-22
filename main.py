@@ -5,8 +5,8 @@ import threading
 import websockets
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-TOKEN = "pat_4286a58e4d40696749af30008aa863ebffdcf75ca34aa48a4a8ae178bb225079"
-APP_ID = 351A317fd2tFf6a3SLIGH35
+TOKEN = "pat_8266112edbea6a1f136fc85482899b2422f63537de0933fdbb8e19a7b7a5e9d7"
+APP_ID = 1089
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -29,8 +29,8 @@ async def keep_alive(ws):
             break
 
 async def bot():
-    url = f"wss://://derivws.com{APP_ID}"
-    headers = {"Origin": "https://deriv.com", "User-Agent": "Mozilla/5.0"}
+    url = "wss://" + "ws." + "://derivws.com" + str(APP_ID)
+    headers = {"Origin": "https://app.deriv.com", "User-Agent": "Mozilla/5.0"}
     while True:
         try:
             async with websockets.connect(url, additional_headers=headers) as ws:
