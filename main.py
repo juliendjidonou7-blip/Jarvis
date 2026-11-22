@@ -5,8 +5,8 @@ import threading
 import websockets
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-TOKEN = "VOTRE_TOKEN_DERIV"
-APP_ID = 1089
+TOKEN = "pat_4286a58e4d40696749af30008aa863ebffdcf75ca34aa48a4a8ae178bb225079"
+APP_ID = 351A317fd2tFf6a3SLIGH35
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
