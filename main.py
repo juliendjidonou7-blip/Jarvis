@@ -21,8 +21,9 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 def run_web():
+    ip = os.environ.get("IP", "::")
     port = int(os.environ.get("PORT", 8100))
-    HTTPServerV6(("::", port), Handler).serve_forever()
+    HTTPServerV6((ip, port), Handler).serve_forever()
 
 async def keep_alive(ws):
     while True:
@@ -33,7 +34,7 @@ async def keep_alive(ws):
             break
 
 async def bot():
-        url = "wss://" + "ws." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
+    url = "wss://" + "ws." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
     headers = {"Origin": "https://deriv.com", "User-Agent": "Mozilla/5.0"}
     while True:
         try:
