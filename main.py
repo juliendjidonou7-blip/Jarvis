@@ -88,11 +88,14 @@ async def execute_multiplier_order(ws, signal: dict, balance: float):
     STATUS["derniers_ordres"] = STATUS["derniers_ordres"][:15]
 
 async def bot():
-    url = "wss://" + "frontend." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
-    headers = {"Origin": "https://app.deriv.com"}
+    url = "wss://" + "ws." + "derivws.com" + "/websockets/v3?app_id=" + str(APP_ID)
+    headers = {
+        "Origin": "https://deriv.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    }
     while True:
         try:
-            async with websockets.connect(url, additional_headers=headers) as ws:
+            async with websockets.connect(url, user_agent_header=None, additional_headers=headers) as ws:
                 auth = await rpc(ws, {"authorize": TOKEN})
                 if "error" in auth:
                     STATUS["connexion"] = "Erreur Auth : " + auth["error"]["message"]
