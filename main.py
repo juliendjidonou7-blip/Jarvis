@@ -3,9 +3,8 @@ import json
 import asyncio
 import websockets
 
-TOKEN = os.getenv("DERIV_TOKEN")
-APP_ID = int(os.getenv("DERIV_APP_ID", 1089))
-
+TOKEN = "pat_4286a58e4d40696749af30008aa863ebffdcf75ca34aa48a4a8ae178bb225079"
+APP_ID = 351A317fd2tFf6a3SLIGH35
 async def keep_alive(ws):
     while True:
         await asyncio.sleep(25)
